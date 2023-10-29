@@ -1,12 +1,9 @@
 import { Component } from 'react';
-import axios from 'axios';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Loader from './Loader/Loader';
 import Button from './Button/Button';
-
-const BASE_URL = 'https://pixabay.com/api/';
-const API_KEY = '39382109-d071ce59cf94359f9a44c3b97';
+import { fetchPhotos } from 'service/search-api';
 
 class App extends Component {
   state = {
@@ -17,21 +14,11 @@ class App extends Component {
     isButton: false,
   };
 
-  fetchPhotos = async (newQuery, currentPage) => {
+  fetchPhotosFromApi = async (newQuery, currentPage) => {
     this.setState({ isLoading: true });
     try {
-      const response = await axios.get(BASE_URL, {
-        params: {
-          key: API_KEY,
-          q: newQuery,
-          image_type: 'photo',
-          orientation: 'horizontal',
-          safesearch: true,
-          page: currentPage,
-          per_page: 12,
-        },
-      });
-      if (response.data.total === 0) {
+      const response = await fetchPhotos(newQuery, currentPage);
+      if (response.total === 0) {
         this.setState({
           photos: [],
           isButton: false,
@@ -40,32 +27,31 @@ class App extends Component {
       }
 
       this.setState(prevState => ({
-        photos: [...prevState.photos, ...response.data.hits],
+        photos: [...prevState.photos, ...response.hits],
         query: newQuery,
         page: currentPage + 1,
         isButton: true,
       }));
     } catch (error) {
-      console.error('Error fetching data:', error);
     } finally {
       this.setState({ isLoading: false });
     }
   };
 
   updateQuery = query => {
-    this.setState({ isLoading: true });
-    this.fetchPhotos(query, 1);
+    this.setState({ page: 1, photos: [] });
+    this.fetchPhotosFromApi(query, 1);
   };
 
   loadMore = () => {
-    this.setState({ isLoading: true });
-    this.fetchPhotos(this.state.query, this.state.page);
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
   };
 
   componentDidUpdate(_, prevState) {
-    if (this.state.query !== prevState.query) {
-      this.setState({ page: 1, photos: [] });
-      this.fetchPhotos(this.state.query, 1);
+    if (this.state.page !== prevState.page) {
+      this.fetchPhotosFromApi(this.state.query, this.state.page);
     }
   }
 
