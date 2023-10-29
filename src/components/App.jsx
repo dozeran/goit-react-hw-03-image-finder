@@ -29,7 +29,6 @@ class App extends Component {
       this.setState(prevState => ({
         photos: [...prevState.photos, ...response.hits],
         query: newQuery,
-        page: currentPage + 1,
         isButton: true,
       }));
     } catch (error) {
