@@ -38,8 +38,7 @@ class App extends Component {
   };
 
   updateQuery = query => {
-    this.setState({ page: 1, photos: [] });
-    this.fetchPhotosFromApi(query, 1);
+    this.setState({ page: 1, photos: [], query });
   };
 
   loadMore = () => {
@@ -49,7 +48,10 @@ class App extends Component {
   };
 
   componentDidUpdate(_, prevState) {
-    if (this.state.page !== prevState.page) {
+    if (
+      (this.state.query !== prevState.query || this.state.page) !==
+      prevState.page
+    ) {
       this.fetchPhotosFromApi(this.state.query, this.state.page);
     }
   }
